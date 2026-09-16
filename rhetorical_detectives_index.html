@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhetorical Detectives — The Case of the Biased Article</title>
+<style>
+:root{--bg:#0d1118;--panel:#171d27;--panel2:#202938;--ink:#f4f6f8;--muted:#aeb8c8;--gold:#e7b94f;--green:#55d68a;--red:#ff6b6b;--blue:#73a8ff;--line:#354052}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#263246,#0d1118 58%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}button,input,textarea{font:inherit}
+.app{max-width:1050px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}.brand{font-weight:900;letter-spacing:.06em}.score{border:1px solid var(--line);background:#121721;border-radius:999px;padding:8px 13px;color:var(--gold);font-weight:800}
+.screen{display:none}.screen.active{display:block}.card{background:rgba(23,29,39,.97);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 18px 55px #0005}
+h1{font-size:clamp(2.1rem,6vw,4.5rem);line-height:.98;margin:8px 0 16px}h2{margin:5px 0 15px}.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:900}.lead{color:var(--muted);line-height:1.65}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}.box{background:#121720;border:1px solid var(--line);padding:15px;border-radius:14px}.box b{display:block;color:var(--gold);margin-bottom:5px}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.btn{border:0;background:var(--gold);color:#17130a;font-weight:900;padding:12px 17px;border-radius:11px;cursor:pointer}.btn.secondary{background:#273142;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.case-tabs{display:flex;gap:8px;overflow:auto;margin-bottom:16px}.case-tab{min-width:max-content;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#151b25;color:var(--muted);cursor:pointer}.case-tab.active{border-color:var(--gold);color:var(--ink);background:#28251c}.progress{height:8px;background:#252c38;border-radius:20px;overflow:hidden;margin:13px 0 23px}.progress i{display:block;height:100%;background:var(--gold);transition:.35s;width:0}
+.article{background:#f2efe7;color:#181818;border-radius:14px;padding:21px;line-height:1.75;font-family:Georgia,serif;font-size:1.06rem}.article .target{cursor:pointer}.article .target:hover{background:#ead9a0}
+.options{display:grid;gap:9px;margin-top:15px}.option{background:#232c3a;color:var(--ink);border:1px solid var(--line);padding:13px;border-radius:11px;text-align:left;cursor:pointer}.option.correct{border-color:var(--green);background:#153322}.option.wrong{border-color:var(--red);background:#351c21}
+.feedback{margin-top:15px;padding:15px;border:1px solid var(--line);background:#121821;border-radius:13px;line-height:1.6}.good{border-color:#376f4e}.bad{border-color:#704047}.phrase{display:inline-block;padding:7px 9px;margin:4px;border-radius:8px;background:#252e3c;font-size:.91rem}.bank{margin-top:15px;padding:15px;border:1px solid #554722;background:#17170f;border-radius:13px}.bank h3{color:var(--gold);margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:.88rem;color:var(--muted)}
+textarea,input{width:100%;background:#10151e;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;outline:none}textarea:focus,input:focus{border-color:var(--gold)}textarea{min-height:95px;resize:vertical}.field{margin:13px 0}.field label{display:block;font-weight:800;margin-bottom:7px}
+.analysis-modal{display:none;position:fixed;inset:0;background:#05070bcc;z-index:50;padding:18px;align-items:center;justify-content:center}.analysis-modal.open{display:flex}.analysis-modal-card{width:min(760px,100%);max-height:88vh;overflow:auto;background:#171d27;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 70px #0009}.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.modal-close{border:1px solid var(--line);background:#232c3a;color:var(--ink);width:40px;height:40px;border-radius:10px;font-size:1.5rem;cursor:pointer}.analysis-modal-card .phrase{display:block;margin:8px 0;line-height:1.5}.case-intro{background:#121821;border-left:4px solid var(--gold);padding:14px 16px;border-radius:8px;margin:14px 0;line-height:1.6}
+.final-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.final-item{background:#121821;border:1px solid var(--line);border-radius:14px;padding:15px}.final-item .quote{font-family:Georgia,serif;font-size:1.05rem;border-left:3px solid var(--gold);padding-left:12px;margin-bottom:12px}.result-box{padding:18px;border-radius:14px;background:#121821;border:1px solid var(--line);margin-top:15px}
+@media(max-width:760px){.app{padding:11px}.card{padding:19px}.grid,.final-grid{grid-template-columns:1fr}.article{font-size:1rem}.top{align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="analysis-modal" id="analysisModal" aria-hidden="true"><div class="analysis-modal-card"><div class="modal-head"><div><div class="eyebrow">Investigation resource</div><h2>🧠 Analysis Bank</h2></div><button class="modal-close" onclick="closeBank()" aria-label="Close Analysis Bank">×</button></div><p class="muted">Use these sentence stems to formulate a precise effect analysis. Adapt the wording to the evidence in the article.</p><div id="modalBankContent"></div></div></div>
+
+<header class="top"><div class="brand">🕵️ RHETORICAL DETECTIVES</div><div class="score" id="score">CASE FILES: 0/3 · SCORE: 0</div></header>
+
+<section id="start" class="screen active"><div class="card">
+<div class="eyebrow">Advanced language investigation · Upper secondary</div>
+<h1>The Case of the Biased Article</h1>
+<p class="lead">Three newspaper articles. Fifteen rhetorical devices. One editorial mystery. Your task is not simply to identify techniques: you must use linguistic evidence to explain how journalists shape meaning and influence readers.</p>
+<div class="grid"><div class="box"><b>🔎 IDENTIFY</b>Find the linguistic evidence yourself.</div><div class="box"><b>🧠 ANALYSE</b>Explain what the device does.</div><div class="box"><b>📰 INTERPRET</b>Connect language choices to the article’s perspective.</div></div>
+<div class="case-intro"><b>Detective rule:</b> The game will not highlight the devices for you. In the final case reports, you must type both the rhetorical device and its effect in your own words.</div>
+<div class="actions"><button class="btn" onclick="begin()">Open Case Files →</button></div>
+</div></section>
+
+<section id="game" class="screen"><div class="card">
+<div class="case-tabs" id="tabs"></div>
+<div class="eyebrow" id="levelEyebrow"></div><h2 id="levelTitle"></h2><div class="progress"><i id="bar"></i></div>
+<div id="task"></div><div id="feedback"></div><div id="bank"></div>
+<div class="actions"><button class="btn secondary" onclick="openBank()">🧠 Analysis Bank</button><button id="next" class="btn" disabled onclick="next()">Next investigation →</button></div>
+</div></section>
+
+<section id="final" class="screen"><div class="card">
+<div class="eyebrow" id="finalEyebrow">Final Case Report</div><h2 id="finalTitle"></h2>
+<p class="lead">The highlighted passages below are <b>not labelled</b>. For each one, identify the rhetorical device and explain its effect in your own words.</p>
+<div id="finalContent"></div>
+<div class="actions"><button class="btn secondary" onclick="openBank()">🧠 Open Analysis Bank</button><button id="submitFinal" class="btn" onclick="submitFinal()" disabled>Submit case report</button></div>
+<div id="finalFeedback"></div>
+</div></section>
+
+<section id="result" class="screen"><div class="card">
+<div class="eyebrow">Investigation complete</div><h2 id="resultTitle"></h2><p id="resultText" class="lead"></p><div id="stats"></div><div class="bank" id="resultBank"></div>
+<div class="actions"><button class="btn" onclick="location.reload()">Restart investigation ↻</button></div>
+</div></section>
+</div>
+
+<script>
+const cases=[
+{
+name:"CASE FILE #01 · THE CITY",theme:"Urban redevelopment",
+levels:[
+{title:"Clue 1 · Find the pattern",type:"mc",html:`<p>Read the extract. Which device is most clearly responsible for the repeated opening structure?</p><div class="article">“Residents have watched rents rise. Residents have watched businesses close. Residents have watched families leave.”</div><div class="options"><button class="option" onclick="mc(this,false)">Enumeration</button><button class="option" onclick="mc(this,true,'Anaphora','The repeated opening “Residents have watched…” creates rhythm and strongly emphasises the residents’ experience.')">Anaphora</button><button class="option" onclick="mc(this,false)">Simile</button><button class="option" onclick="mc(this,false)">Irony</button></div>`,phrase:"The use of anaphora emphasises …"},
+{title:"Clue 2 · Decode the image",type:"mc",html:`<p>What does the image suggest about the redevelopment project?</p><div class="article">“The redevelopment plan is a <b>Trojan horse</b>, carrying promises of renewal into the heart of the neighbourhood.”</div><div class="options"><button class="option" onclick="mc(this,false)">It is presented as completely transparent.</button><button class="option" onclick="mc(this,true,'Metaphor','The project is compared to a Trojan horse: something that appears beneficial but may conceal a threat.')">It is presented as something that may conceal a threat.</button><button class="option" onclick="mc(this,false)">It is described as physically ancient.</button></div>`,phrase:"The metaphor compares … to …, suggesting that …"},
+{title:"Clue 3 · Spot the contrast",type:"mc",html:`<p>Which device is created by placing two contrasting situations side by side?</p><div class="article">“Luxury towers rise above streets where families struggle to pay the rent.”</div><div class="options"><button class="option" onclick="mc(this,true,'Juxtaposition','The juxtaposition places visible wealth beside financial hardship, highlighting the social inequality created or exposed by redevelopment.')">Juxtaposition — it highlights the contrast between wealth and hardship.</button><button class="option" onclick="mc(this,false)">Personification — the buildings are given human qualities.</button><button class="option" onclick="mc(this,false)">Simile — one situation is explicitly compared with another.</button></div>`,phrase:"The juxtaposition of … and … highlights the tension between …"},
+{title:"Clue 4 · Follow the contrast",type:"mc",html:`<p>Why does the journalist place these two ideas together?</p><div class="article">“For investors, the new district promises <b>profit</b>; for long-term residents, it may mean <b>displacement</b>.”</div><div class="options"><button class="option" onclick="mc(this,false)">To provide a definition.</button><button class="option" onclick="mc(this,true,'Antithesis','The contrasting terms “profit” and “displacement” place two opposing consequences side by side.')">To highlight opposing consequences and perspectives.</button><button class="option" onclick="mc(this,true,'Antithesis','The contrast creates tension between the interests of investors and those of long-term residents.')">To create tension between the interests of different groups.</button><button class="option" onclick="mc(this,false)">To create a humorous effect.</button></div>`,phrase:"The contrast between … and … highlights …"},
+{title:"Clue 5 · The loaded question",type:"mc",html:`<p>What is the rhetorical function of the question?</p><div class="article">“<b>How many more families must move before the council calls this a crisis?</b>”</div><div class="options"><button class="option" onclick="mc(this,true,'Rhetorical question','The question does not primarily seek information; it challenges the reader and implies criticism of the council’s response.')">It challenges the reader and implies criticism.</button><button class="option" onclick="mc(this,false)">It asks for a precise statistical answer.</button><button class="option" onclick="mc(this,false)">It makes the article purely factual.</button></div>`,phrase:"The rhetorical question challenges the reader to …"}
+]},
+{
+name:"CASE FILE #02 · THE DIGITAL FRONTIER",theme:"Social media and public life",
+levels:[
+{title:"Clue 1 · Count the evidence",type:"mc",html:`<p>Which device is used by the accumulation of different examples?</p><div class="article">“Notifications follow us on the bus, at dinner, during lessons, before we sleep.”</div><div class="options"><button class="option" onclick="mc(this,true,'Enumeration','The list of settings creates an impression of constant, pervasive notifications.')">Enumeration</button><button class="option" onclick="mc(this,false)">Personification</button><button class="option" onclick="mc(this,false)">Antithesis</button></div>`,phrase:"The enumeration of … creates an impression of …"},
+{title:"Clue 2 · Make the invisible visible",type:"mc",html:`<p>Which device turns an abstract process into something human-like?</p><div class="article">“The algorithm <b>watches</b> what we click, remembers what we pause over and learns what keeps us online.”</div><div class="options"><button class="option" onclick="mc(this,false)">Simile</button><button class="option" onclick="mc(this,true,'Personification','The algorithm is given human-like abilities such as watching, remembering and learning, making an invisible digital process easier to imagine.')">Personification</button><button class="option" onclick="mc(this,false)">Juxtaposition</button></div>`,phrase:"By personifying …, the journalist makes … appear …"},
+{title:"Clue 3 · Spot the exaggeration",type:"mc",html:`<p>Which statement best describes the effect?</p><div class="article">“For some teenagers, checking their feed is <b>the first thing they do on waking and the last thing they do before the world ends</b>.”</div><div class="options"><button class="option" onclick="mc(this,true,'Hyperbole','The exaggerated phrase intensifies the impression of excessive dependence on social media.')">The exaggeration intensifies the impression of dependence.</button><button class="option" onclick="mc(this,false)">It gives an exact statistic.</button><button class="option" onclick="mc(this,false)">It creates a neutral technical tone.</button></div>`,phrase:"The hyperbole exaggerates … in order to emphasise …"},
+{title:"Clue 4 · A familiar comparison",type:"mc",html:`<p>What is the main effect of the comparison?</p><div class="article">“For many users, the endless scroll is <b>like a conveyor belt</b> that never stops.”</div><div class="options"><button class="option" onclick="mc(this,true,'Simile','The simile compares scrolling to a conveyor belt, suggesting repetition, lack of control and continuous movement.')">It suggests a repetitive process that is difficult to stop.</button><button class="option" onclick="mc(this,true,'Simile','The comparison presents scrolling as continuous and mechanical, suggesting that users may have limited control over the process.')">It suggests continuous movement and a possible lack of control.</button><button class="option" onclick="mc(this,false)">It proves that phones contain machines.</button><button class="option" onclick="mc(this,false)">It creates an example of irony.</button></div>`,phrase:"The simile compares … to …, creating the impression of …"},
+{title:"Clue 5 · Listen to the echo",type:"mc",html:`<p>Which device is used by the deliberate repetition of the same key word?</p><div class="article">“The article calls for <b>change</b> in schools, <b>change</b> in workplaces and <b>change</b> in public policy.”</div><div class="options"><button class="option" onclick="mc(this,true,'Repetition','The repeated word “change” receives strong emphasis and becomes the central idea of the sentence.')">Repetition</button><button class="option" onclick="mc(this,false)">Juxtaposition</button><button class="option" onclick="mc(this,false)">Personification</button></div>`,phrase:"The repetition of “…” reinforces the importance of …"}
+]},
+{
+name:"CASE FILE #03 · THE GREEN QUESTION",theme:"Climate and public policy",
+levels:[
+{title:"Clue 1 · A three-part structure",type:"mc",html:`<p>Identify the device created by the three parallel elements.</p><div class="article">“The policy demands <b>patience from households, investment from businesses, and courage from politicians</b>.”</div><div class="options"><button class="option" onclick="mc(this,false)">Symbolism</button><button class="option" onclick="mc(this,true,'Parallelism','The three elements follow a similar grammatical structure, giving the sentence balance and making the demands memorable.')">Parallelism</button><button class="option" onclick="mc(this,false)">Direct address</button></div>`,phrase:"The parallel structure gives the sentence … and emphasises …"},
+{title:"Clue 2 · A symbolic object",type:"mc",html:`<p>What can the repeated image of the empty chair symbolise?</p><div class="article">“At the hearing, one <b>empty chair</b> stood where future generations were supposed to have a voice.”</div><div class="options"><button class="option" onclick="mc(this,false)">The number of seats in parliament.</button><button class="option" onclick="mc(this,true,'Symbolism','The empty chair can symbolise absent future generations and their lack of direct representation in today’s decisions.')">The absence and lack of representation of future generations.</button><button class="option" onclick="mc(this,true,'Symbolism','The empty chair makes the consequences for future generations emotionally tangible by giving their absence a visible image.')">It makes the absence of future generations emotionally tangible.</button><button class="option" onclick="mc(this,false)">A seating problem at the hearing.</button></div>`,phrase:"The symbol of … represents … and adds … to the article."},
+{title:"Clue 3 · Speak to the reader",type:"mc",html:`<p>Why does the journalist switch to “you”?</p><div class="article">“If <b>you</b> drive to work every morning, <b>you</b> are already part of this debate.”</div><div class="options"><button class="option" onclick="mc(this,true,'Direct address','Direct address brings the reader into the issue personally and can make the political debate feel immediate and relevant.')">It directly involves the reader in the issue.</button><button class="option" onclick="mc(this,false)">It removes the reader from the argument.</button><button class="option" onclick="mc(this,false)">It is a form of symbolism.</button></div>`,phrase:"The use of direct address involves the reader by …"},
+{title:"Clue 4 · A shared “we”",type:"mc",html:`<p>What does the pronoun “we” do here?</p><div class="article">“<b>We</b> can either reduce emissions now or leave the consequences to those who come after us.”</div><div class="options"><button class="option" onclick="mc(this,false)">It identifies one individual politician.</button><button class="option" onclick="mc(this,true,'Inclusive language','Inclusive “we” constructs a shared responsibility and positions the audience as part of the collective decision.')">It creates a sense of shared responsibility.</button><button class="option" onclick="mc(this,false)">It makes the article impersonal.</button></div>`,phrase:"The inclusive use of “we” creates a sense of …"},
+{title:"Clue 5 · The unexpected meaning",type:"mc",html:`<p>The journalist writes:</p><div class="article">“Officials have <b>celebrated</b> another year of record emissions.”</div><p>Why is this wording striking?</p><div class="options"><button class="option" onclick="mc(this,false)">It is straightforward praise.</button><button class="option" onclick="mc(this,true,'Irony','Celebrating record emissions is presented as an apparent contradiction because record emissions would normally be a negative development.')">The apparent praise clashes with the negative reality.</button><button class="option" onclick="mc(this,false)">It is a literal description of a party.</button></div>`,phrase:"The ironic wording creates a tension between … and …"}
+]}
+];
+
+const finalArticles=[
+{title:"FINAL REPORT · CASE FILE #01",caseIndex:0,text:`The city has been struggling with rising rents for years. The council now promises a “new beginning” for the waterfront. Critics, however, describe the plan as a <span class="target">Trojan horse</span> that could transform affordable homes into luxury apartments.<br><br>
+<span class="target">Residents have spoken. Residents have protested. Residents have demanded answers.</span> At the same time, the council calls the proposal a “bold” step towards renewal.<br><br>
+Outside the council building, an <span class="target">empty children's bicycle</span> has become a powerful image in the campaign against the project. One question remains: <span class="target">How much progress can a city celebrate if the people who live there can no longer afford to stay?</span>`},
+{title:"FINAL REPORT · CASE FILE #02",caseIndex:1,text:`The platform’s latest redesign promises to make online life “simpler”. Yet critics argue that the digital environment has become <span class="target">a maze with no exit</span> for users trying to control their attention.<br><br>
+<span class="target">We scroll, we click, we react, we repeat.</span> Every gesture produces another recommendation. Notifications follow users <span class="target">like persistent flies</span>, appearing during meals, lessons and conversations.<br><br>
+The result is a strange contradiction: <span class="target">more connection, less attention</span>.`},
+{title:"FINAL REPORT · CASE FILE #03",caseIndex:2,text:`At the climate hearing, ministers presented a package designed to reduce emissions. The proposal asks citizens for “small changes” while campaigners describe the challenge as <span class="target">a fire at the edge of the house</span>.<br><br>
+<span class="target">You can ignore the smoke, you can close the windows, but you cannot make the fire disappear.</span> Outside the building, an <span class="target">hourglass</span> has become a symbol of the limited time available for action.<br><br>
+The debate is increasingly framed around one choice: <span class="target">growth today or stability tomorrow</span>.`},
+{title:"FINAL REPORT · CASE FILE #04 · THE POLITICAL SPIN",caseIndex:3,text:`The minister called the new emissions figures “encouraging”. Yet pollution has reached another record. The journalist writes: <span class="target">What a wonderful success: another record year for pollution.</span><br><br>
+<span class="target">We were promised cleaner air. We were promised safer streets. We were promised change.</span> Instead, the report describes the policy as <span class="target">a bandage on a broken bridge</span>.<br><br>
+The article ends with a final question: <span class="target">Who exactly is supposed to celebrate?</span>`}
+];
+
+let caseNo=0,level=0,score=0,caseScore=0,finalIndex=0,finalAnswers=[],bank=[];
+function begin(){document.getElementById('start').classList.remove('active');document.getElementById('game').classList.add('active');renderTabs();renderLevel()}
+function renderTabs(){document.getElementById('tabs').innerHTML=cases.map((c,i)=>`<div class="case-tab ${i===caseNo?'active':''}">${c.name}</div>`).join('')}
+function renderLevel(){
+ const l=cases[caseNo].levels[level];document.getElementById('levelEyebrow').textContent=`${cases[caseNo].name} · Level ${level+1}/5`;
+ document.getElementById('levelTitle').textContent=l.title;document.getElementById('task').innerHTML=l.html;document.getElementById('feedback').innerHTML='';document.getElementById('bank').innerHTML='';document.getElementById('next').disabled=true;
+ document.getElementById('bar').style.width=((level)/5*100)+'%';updateScore()
+}
+function mc(btn,correct,device,effect){
+ const all=[...document.querySelectorAll('.option')];
+ // Several options can be correct. Their device/effect metadata are stored on the buttons.
+ const correctBtns=all.filter(x=>x.getAttribute('onclick') && x.getAttribute('onclick').includes("mc(this,true,"));
+ const correctData=correctBtns.map(x=>{
+   const m=x.getAttribute('onclick').match(/mc\(this,true,'([^']+)','([^']*)'\)/);
+   return m?{device:m[1],effect:m[2]}:null;
+ }).filter(Boolean);
+ const cd=correctData[0]?.device||device||'';
+ const effects=[...new Set(correctData.map(x=>x.effect).filter(Boolean))];
+ const ce=effects.join(' ');
+ all.forEach(x=>x.disabled=true);
+ if(correct){
+   btn.classList.add('correct');
+   score+=2;caseScore+=2;
+   const p=cases[caseNo].levels[level].phrase;bank.push(p);
+   const effectList=effects.length>1?`<ul>${effects.map(e=>`<li>${e}</li>`).join('')}</ul>`:(ce||effect);
+   document.getElementById('feedback').innerHTML=`<div class="feedback good"><b>🟢 CLUE VERIFIED</b><br><b>Correct stylistic device:</b> ${cd}<br><b>Correct interpretation(s) of the effect:</b> ${effectList}<br><br><b>+2 points</b></div>`;
+   document.getElementById('bank').innerHTML=bankBox(p);document.getElementById('next').disabled=false;
+ }else{
+   btn.classList.add('wrong');
+   const effectList=effects.length>1?`<ul>${effects.map(e=>`<li>${e}</li>`).join('')}</ul>`:(ce||effect);
+   document.getElementById('feedback').innerHTML=`<div class="feedback bad"><b>🔴 MISREAD EVIDENCE</b><br><b>Correct stylistic device:</b> ${cd}<br><b>Correct interpretation(s) of the effect:</b> ${effectList}<br><br>Re-read the passage and compare the wording with the available options.</div>`;
+   all.forEach(x=>x.disabled=false);
+ }
+ updateScore()
+}
+function bankBox(newP){return `<div class="bank"><h3>🧠 Analysis Bank · Phrase unlocked</h3>${bank.map(x=>`<span class="phrase">${x}</span>`).join('')}</div>`}
+function openBank(){
+ const content=document.getElementById('modalBankContent');
+ content.innerHTML=bank.length?bank.map((x,i)=>`<span class="phrase"><b>${i+1}.</b> ${x}</span>`).join(''):'<p class="muted">No phrases unlocked yet. Complete clues in the Case Files to build your Analysis Bank.</p>';
+ document.getElementById('analysisModal').classList.add('open');
+ document.getElementById('analysisModal').setAttribute('aria-hidden','false');
+}
+function closeBank(){
+ document.getElementById('analysisModal').classList.remove('open');
+ document.getElementById('analysisModal').setAttribute('aria-hidden','true');
+}
+function next(){
+ level++;
+ if(level<5){renderLevel();return}
+ caseScore=0;level=0;caseNo++;
+ if(caseNo<3){renderTabs();renderLevel()}else{showFinal(0)}
+}
+function updateScore(){document.getElementById('score').textContent=`CASE FILES: ${Math.min(caseNo,3)}/3 · SCORE: ${score}`}
+
+function showFinal(i){
+ finalIndex=i;finalAnswers=[];document.getElementById('game').classList.remove('active');document.getElementById('final').classList.add('active');
+ const f=finalArticles[i];document.getElementById('finalEyebrow').textContent=`Final Case Report · ${i+1}/${finalArticles.length}`;document.getElementById('finalTitle').textContent=f.title;
+ document.getElementById('finalContent').innerHTML=`<div class="article">${f.text}</div><div class="case-intro"><b>Instructions:</b> Click each highlighted phrase. For every clue, type the rhetorical device and explain its effect. You must investigate all four clues before submitting.</div>`;
+ document.querySelectorAll('#finalContent .target').forEach((el,n)=>{el.onclick=()=>makeFinalField(el,n)});
+ document.getElementById('submitFinal').disabled=true;document.getElementById('finalFeedback').innerHTML=''
+}
+function makeFinalField(el,n){
+ if(el.dataset.opened)return;el.dataset.opened='1';el.style.background='#ead9a0';
+ const wrap=document.createElement('div');wrap.className='final-item';wrap.id='fi'+n;
+ const quote=el.textContent;
+ wrap.innerHTML=`<div class="quote">“${quote}”</div>
+ <div class="field"><label>1. Which rhetorical device is used?</label><input id="dev${n}" placeholder="Type the device name…"></div>
+ <div class="field"><label>2. What is its effect?</label><textarea id="eff${n}" placeholder="Explain what the device makes the reader think, feel or notice…"></textarea></div>
+ <button class="btn secondary" onclick="saveFinal(${n})">Submit clue</button><div id="res${n}"></div>`;
+ document.getElementById('finalContent').appendChild(wrap)
+}
+const answerKeys=[
+ [
+ {d:['metaphor'],e:['danger','threat','hidden','conceal','harm','deceiv'],p:'The metaphor compares the plan to a Trojan horse, suggesting a hidden threat.'},
+ {d:['anaphora','repetition'],e:['emphasis','rhythm','protest','persistence','highlight','stress'],p:'The repeated opening emphasises the residents’ continued protest.'},
+ {d:['symbolism','symbol'],e:['future','child','children','community','home','displacement','innocence'],p:'The bicycle can symbolise children, homes or the future affected by the project.'},
+ {d:['rhetorical question'],e:['challenge','reader','question','critical','progress','afford','doubt'],p:'The rhetorical question challenges the idea of progress and makes readers reconsider its human cost.'}
+ ],
+ [
+ {d:['metaphor'],e:['maze','trap','confus','no exit','control','difficult'],p:'The metaphor presents digital life as a confusing system that is difficult to escape or control.'},
+ {d:['anaphora','repetition'],e:['rhythm','emphasis','routine','constant','repet','habit','cycle'],p:'The repeated “we” structure creates rhythm and stresses the repetitive behaviour.'},
+ {d:['simile'],e:['fly','persistent','annoy','intrus','appear','attention'],p:'The simile makes notifications seem intrusive and difficult to ignore.'},
+ {d:['antithesis','juxtaposition'],e:['contrast','oppos','tension','connection','attention','difference'],p:'The contrast highlights the tension between being socially connected and having less attention.'}
+ ],
+ [
+ {d:['metaphor'],e:['fire','danger','urgent','crisis','threat','immediate'],p:'The metaphor presents climate change as an immediate and dangerous crisis.'},
+ {d:['parallelism','anaphora'],e:['parallel','repet','rhythm','emphasis','choice','cannot','ignore','smoke'],p:'The parallel structure creates rhythm and reinforces the limits of simply ignoring the problem.'},
+ {d:['symbolism','symbol'],e:['time','limited','deadline','urgency','future','action'],p:'The hourglass symbolises limited time and creates a sense of urgency.'},
+ {d:['antithesis','juxtaposition'],e:['contrast','oppos','growth','stability','trade','choice','difference'],p:'The contrast frames the issue as a tension between short-term growth and longer-term stability.'}
+ ],
+ [
+ {d:['irony'],e:['oppos','contradict','sarcas','negative','pollution','success','celebrate','critici','apparent'],p:'Irony — the apparently positive “wonderful success” clashes with record pollution, creating a clearly critical effect.'},
+ {d:['anaphora','repetition'],e:['emphasis','rhythm','promise','repeated','highlight','contrast','expect'],p:'Anaphora — repeating “We were promised” emphasises the gap between repeated promises and the outcome.'},
+ {d:['metaphor'],e:['bandage','broken','bridge','inadequate','insufficient','temporary','repair','problem'],p:'Metaphor — the policy is compared to a bandage on a broken bridge, suggesting that it is inadequate for the scale of the problem.'},
+ {d:['rhetorical question'],e:['challenge','reader','question','celebrate','criticism','doubt','who'],p:'Rhetorical question — it challenges the reader and exposes the lack of a convincing reason for celebration.'}
+ ]
+];
+function normalize(s){return s.toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9 ]/g,' ')}
+function saveFinal(n){
+ const d=normalize(document.getElementById('dev'+n).value),e=normalize(document.getElementById('eff'+n).value);
+ if(d.length<3||e.length<12){document.getElementById('res'+n).innerHTML='<div class="feedback bad">Please give a device and a complete effect explanation.</div>';return}
+ const key=answerKeys[finalIndex][n];const dOk=key.d.some(x=>d.includes(x));const eOk=key.e.some(x=>e.includes(x));
+ let points=0;if(dOk)points+=2;if(eOk)points+=2;score+=points;
+ const status=points===4?'excellent':points>=2?'partial':'needsReview';
+ document.getElementById('res'+n).innerHTML=`<div class="feedback ${points>=2?'good':'bad'}"><b>${points===4?'🟢 CLUE CRACKED':points>=2?'🟡 PARTIAL EVIDENCE':'🔴 EVIDENCE NEEDS REVIEW'}</b><br>
+ Device: ${dOk?'✓ accepted':'✗ not recognised'} · Effect: ${eOk?'✓ meaningful explanation':'✗ needs a clearer effect'}<br><br>
+ <span class="small"><b>Reference analysis:</b> ${key.p}</span><br><br>${points}/4 points</div>`;
+ document.querySelector('#fi'+n+' .btn').disabled=true;finalAnswers[n]=true;
+ if(points>=2){const phrase=bankForFinal(key.d[0]);if(phrase)bank.push(phrase)}
+ if(finalAnswers.filter(Boolean).length===document.querySelectorAll('#finalContent .target').length)document.getElementById('submitFinal').disabled=false;
+ updateScore()
+}
+function bankForFinal(device){
+ const map={'metaphor':'The metaphor presents … as …, suggesting that …','anaphora':'By repeating …, the journalist emphasises …','simile':'The simile compares … to …, creating the impression of …','symbolism':'The symbol of … represents … and adds emotional meaning.','rhetorical question':'The rhetorical question challenges the reader to …','antithesis':'The contrast between … and … highlights …','juxtaposition':'The juxtaposition of … and … creates a tension between …'};
+ return map[device]
+}
+function submitFinal(){
+ document.getElementById('finalFeedback').innerHTML='<div class="result-box"><b>Case report submitted.</b><br>Compare your answers with the reference analyses above. The goal is precise, evidence-based explanation rather than simply naming a device.</div>';
+ const btn=document.getElementById('submitFinal');btn.disabled=true;
+ if(finalIndex<finalArticles.length-1){setTimeout(()=>showFinal(finalIndex+1),900)}else{setTimeout(showResult,900)}
+}
+function showResult(){
+ document.getElementById('final').classList.remove('active');document.getElementById('result').classList.add('active');
+ let title=score>=45?'MASTER DETECTIVE 🏆':score>=34?'RHETORICAL DETECTIVE 🔎':'JUNIOR ANALYST 📰';
+ document.getElementById('resultTitle').textContent=title;
+ document.getElementById('resultText').textContent=`All four final case reports are complete. You identified evidence, analysed rhetorical choices and completed four independent case reports.`;
+ document.getElementById('stats').innerHTML=`<div class="grid"><div class="box"><b>SCORE</b>${score} points</div><div class="box"><b>CASE FILES</b>3 completed</div><div class="box"><b>DEVICE POOL</b>15 devices investigated</div></div>`;
+ document.getElementById('resultBank').innerHTML=bankBox();
+}
+document.getElementById('analysisModal').addEventListener('click',e=>{if(e.target.id==='analysisModal')closeBank()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBank()});
+document.getElementById('analysisModal').addEventListener('click',e=>{if(e.target.id==='analysisModal')closeBank()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBank()});
+</script>
+</body>
+</html>
